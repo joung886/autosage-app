@@ -84,41 +84,65 @@ export class SummaryService {
 
   public static async summarizeText(text: string): Promise<string> {
     try {
-      // 텍스트가 너무 짧으면 그대로 반환
-      if (text.length < 10) {
+      // 입력 텍스트가 비어있거나 너무 짧은 경우
+      if (!text || text.length < 5) {
         return text;
       }
 
-      // 텍스트가 너무 길 경우 처리
-      const maxLength = 1000;
-      if (text.length > maxLength) {
-        text = text.substring(0, maxLength);
+      // 텍스트 전처리
+      const cleanText = text.trim();
+
+      // 문장에 '나는' 또는 '저는'이 포함되어 있고, 
+      // '만들었다', '했다', '보았다' 등의 종결어미가 있는 경우
+      if (
+        (cleanText.includes('나는') || cleanText.includes('저는')) &&
+        (cleanText.includes('었다') || cleanText.includes('았다') || 
+         cleanText.includes('했다') || cleanText.includes('보았다'))
+      ) {
+        return cleanText;
       }
 
-      // 문장 추출
-      const sentences = this.extractSentences(text);
+      // 긴 텍스트의 경우 문장 단위로 분리
+      const sentences = cleanText
+        .split(/[.!?]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
 
-      // 문장이 하나뿐이면 그대로 반환
       if (sentences.length <= 1) {
-        return text;
+        return cleanText;
       }
 
-      // 각 문장의 점수 계산
-      const scoredSentences = sentences.map((sentence) => ({
-        sentence: sentence.trim(),
-        score: this.calculateSentenceScore(sentence),
-      }));
+      // 각 문장의 중요도 계산
+      const scoredSentences = sentences.map(sentence => {
+        let score = 0;
+        
+        // 주요 키워드 점수
+        const keywords = ['프로젝트', '개발', '구현', '생성', '작업', '기능', 
+                        '목적', '결과', '요약', '정리', '설명', '소개', '주요',
+                        '핵심', '중요', '필수', '목표', '만들', '테스트', '서비스'];
+        
+        keywords.forEach(keyword => {
+          if (sentence.includes(keyword)) score += 2;
+        });
 
-      // 점수순으로 정렬
+        // 주체 언급 점수
+        if (sentence.includes('나는') || sentence.includes('저는')) score += 3;
+        
+        // 문장 길이 점수 (너무 짧거나 긴 문장 제외)
+        if (sentence.length >= 10 && sentence.length <= 50) score += 1;
+
+        return { sentence, score };
+      });
+
+      // 점수 기준 정렬
       scoredSentences.sort((a, b) => b.score - a.score);
 
-      // 가장 높은 점수의 문장 선택
-      const topSentence = scoredSentences[0].sentence;
+      // 최고 점수 문장 반환
+      return scoredSentences[0].sentence || cleanText;
 
-      return topSentence || text; // 실패시 원본 반환
     } catch (error) {
-      console.error("요약 중 오류 발생:", error);
-      return text; // 오류 발생시 원본 반환
+      console.error('요약 중 오류 발생:', error);
+      return text;
     }
   }
 }
