@@ -92,9 +92,9 @@ export class SummaryService {
       // 문장 추출
       const sentences = this.extractSentences(text);
 
-      // 텍스트가 매우 짧은 경우 핵심 구절 추출
-      if (text.length < 50 || sentences.length <= 1) {
-        return this.extractKeyPhrases(text);
+      // 텍스트가 매우 짧은 경우 그대로 반환
+      if (text.length < 10) {
+        return text;
       }
 
       if (sentences.length === 0) {
@@ -110,7 +110,7 @@ export class SummaryService {
       // 점수순으로 정렬
       scoredSentences.sort((a, b) => b.score - a.score);
 
-      // 상위 문장 선택
+      // 상위 문장 선택 (최소 1개는 반환)
       const numSentences = Math.max(
         1,
         Math.min(2, Math.ceil(sentences.length * 0.3))
@@ -124,10 +124,10 @@ export class SummaryService {
         .filter((sentence) => topSentences.includes(sentence.trim()))
         .join(" ");
 
-      return orderedSummary || "요약을 생성할 수 없습니다.";
+      return orderedSummary || text; // 요약 실패시 원본 반환
     } catch (error) {
       console.error("요약 중 오류 발생:", error);
-      throw new Error("텍스트 요약 중 오류가 발생했습니다.");
+      return text; // 오류 발생시 원본 반환
     }
   }
 }
