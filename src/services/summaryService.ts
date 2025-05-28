@@ -84,65 +84,104 @@ export class SummaryService {
 
   public static async summarizeText(text: string): Promise<string> {
     try {
-      // 입력 텍스트가 비어있거나 너무 짧은 경우
-      if (!text || text.length < 5) {
-        return text;
+      console.log("입력 텍스트:", text); // 디버깅 로그
+
+      // 입력 텍스트 검증
+      if (!text || typeof text !== "string") {
+        console.log("유효하지 않은 입력"); // 디버깅 로그
+        return "유효한 텍스트를 입력해주세요.";
       }
 
       // 텍스트 전처리
       const cleanText = text.trim();
+      console.log("전처리된 텍스트:", cleanText); // 디버깅 로그
 
-      // 문장에 '나는' 또는 '저는'이 포함되어 있고, 
-      // '만들었다', '했다', '보았다' 등의 종결어미가 있는 경우
-      if (
-        (cleanText.includes('나는') || cleanText.includes('저는')) &&
-        (cleanText.includes('었다') || cleanText.includes('았다') || 
-         cleanText.includes('했다') || cleanText.includes('보았다'))
-      ) {
+      // 짧은 텍스트는 그대로 반환
+      if (cleanText.length < 20) {
+        console.log("짧은 텍스트 그대로 반환"); // 디버깅 로그
         return cleanText;
       }
 
-      // 긴 텍스트의 경우 문장 단위로 분리
+      // 문장 분리
       const sentences = cleanText
         .split(/[.!?]+/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 
+      console.log("분리된 문장들:", sentences); // 디버깅 로그
+
+      // 단일 문장이면 그대로 반환
       if (sentences.length <= 1) {
+        console.log("단일 문장 그대로 반환"); // 디버깅 로그
         return cleanText;
       }
 
-      // 각 문장의 중요도 계산
-      const scoredSentences = sentences.map(sentence => {
+      // 중요 키워드
+      const keywords = [
+        "프로젝트",
+        "개발",
+        "구현",
+        "생성",
+        "작업",
+        "기능",
+        "목적",
+        "결과",
+        "요약",
+        "정리",
+        "설명",
+        "소개",
+        "주요",
+        "핵심",
+        "중요",
+        "필수",
+        "목표",
+        "만들",
+        "테스트",
+        "서비스",
+      ];
+
+      // 각 문장 점수 계산
+      const scoredSentences = sentences.map((sentence) => {
         let score = 0;
-        
-        // 주요 키워드 점수
-        const keywords = ['프로젝트', '개발', '구현', '생성', '작업', '기능', 
-                        '목적', '결과', '요약', '정리', '설명', '소개', '주요',
-                        '핵심', '중요', '필수', '목표', '만들', '테스트', '서비스'];
-        
-        keywords.forEach(keyword => {
-          if (sentence.includes(keyword)) score += 2;
+
+        // 키워드 점수
+        keywords.forEach((keyword) => {
+          if (sentence.toLowerCase().includes(keyword)) {
+            score += 2;
+          }
         });
 
         // 주체 언급 점수
-        if (sentence.includes('나는') || sentence.includes('저는')) score += 3;
-        
-        // 문장 길이 점수 (너무 짧거나 긴 문장 제외)
-        if (sentence.length >= 10 && sentence.length <= 50) score += 1;
+        if (sentence.includes("나는") || sentence.includes("저는")) {
+          score += 5; // 가중치 증가
+        }
 
+        // 행동 완료 표현 점수
+        if (
+          sentence.includes("했다") ||
+          sentence.includes("았다") ||
+          sentence.includes("었다") ||
+          sentence.includes("보았다")
+        ) {
+          score += 3;
+        }
+
+        console.log("문장 점수:", { sentence, score }); // 디버깅 로그
         return { sentence, score };
       });
 
       // 점수 기준 정렬
       scoredSentences.sort((a, b) => b.score - a.score);
+      console.log("정렬된 문장들:", scoredSentences); // 디버깅 로그
 
       // 최고 점수 문장 반환
-      return scoredSentences[0].sentence || cleanText;
+      const result = scoredSentences[0].sentence;
+      console.log("최종 결과:", result); // 디버깅 로그
 
+      return result;
     } catch (error) {
-      console.error('요약 중 오류 발생:', error);
-      return text;
+      console.error("요약 중 오류 발생:", error);
+      return "요약 중 오류가 발생했습니다.";
     }
   }
 }
