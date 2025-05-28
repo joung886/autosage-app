@@ -1,68 +1,91 @@
-# React + TypeScript 자동화 웹앱 템플릿
+# 텍스트 요약 서비스 (AutoSage)
 
-Firebase 인증이 포함된 React + TypeScript 웹 애플리케이션 템플릿입니다.
+텍스트를 입력하면 자동으로 핵심 내용을 요약해주는 웹 서비스입니다.
 
-## 기능
+## 주요 기능
 
-- 🔐 Firebase 인증 (이메일/비밀번호)
-- 🎨 Chakra UI를 이용한 모던한 디자인
-- 📱 반응형 레이아웃
-- 🛣️ React Router를 이용한 라우팅
-- 🔒 보호된 라우트
+- ✍️ 텍스트 자동 요약
+- 📱 모바일 반응형 디자인
+- 📋 원본/요약 텍스트 복사 기능
+- 🔒 사용자 인증 (로그인/회원가입)
+- 📚 요약 기록 저장 및 조회
+
+## 기술 스택
+
+- **Frontend**
+
+  - React
+  - TypeScript
+  - Chakra UI
+  - Vite
+
+- **Backend/DB**
+
+  - Firebase Authentication
+  - Cloud Firestore
+
+- **요약 알고리즘**
+  - 자체 개발 규칙 기반 요약 알고리즘
+  - 키워드 추출 및 문장 중요도 계산
 
 ## 시작하기
 
-1. 프로젝트 클론 및 의존성 설치:
+1. 저장소 클론
 
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/joung886/autosage-app.git
+cd autosage-app
+```
+
+2. 의존성 설치
+
+```bash
 npm install
 ```
 
-2. Firebase 프로젝트 설정:
-   - [Firebase Console](https://console.firebase.google.com)에서 새 프로젝트 생성
-   - 웹 앱 추가 및 설정 정보 복사
-   - 프로젝트 루트에 `.env` 파일 생성 후 아래 내용 추가:
-
-```env
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-```
-
-3. 개발 서버 실행:
+3. 개발 서버 실행
 
 ```bash
 npm run dev
 ```
 
-## 프로젝트 구조
+4. 브라우저에서 확인
 
 ```
-src/
-  ├── components/        # 재사용 가능한 컴포넌트
-  │   ├── Login.tsx     # 로그인 컴포넌트
-  │   └── Signup.tsx    # 회원가입 컴포넌트
-  ├── contexts/         # React Context
-  │   └── AuthContext.tsx  # 인증 컨텍스트
-  ├── config/           # 설정 파일
-  │   └── firebase.ts   # Firebase 설정
-  └── App.tsx           # 메인 앱 컴포넌트
+http://localhost:5173
 ```
 
-## 기술 스택
+## 주요 화면
 
-- React
-- TypeScript
-- Vite
-- Firebase Authentication
-- Chakra UI
-- React Router DOM
+1. **메인 화면**
+
+   - 텍스트 입력 영역
+   - 요약 결과 표시
+   - 복사 기능
+
+2. **로그인/회원가입**
+
+   - 이메일/비밀번호 인증
+   - 사용자 정보 관리
+
+3. **요약 기록**
+   - 과거 요약 목록 조회
+   - 시간순 정렬
+
+## 업데이트 내역
+
+- 2024.03.xx: 프로젝트 시작
+- 2024.03.xx: 기본 요약 기능 구현
+- 2024.03.xx: Firebase 연동
+- 2024.03.xx: 모바일 UI 최적화
+
+## 향후 계획
+
+- [ ] GPT 기반 요약 기능 추가
+- [ ] 다국어 지원
+- [ ] 요약 결과 공유 기능
+- [ ] PDF 파일 지원
 
 ## 라이선스
 
-MIT
+MIT License
