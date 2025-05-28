@@ -10,7 +10,6 @@ import {
   Text,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { useAuth } from "../contexts/AuthContext";
 import SummaryResult from "./SummaryResult";
 import { SummaryService } from "../services/summaryService";
 
@@ -29,7 +28,6 @@ export default function TextSummary() {
     timestamp: string;
   } | null>(null);
 
-  const { currentUser } = useAuth();
   const toast = useToast();
 
   // 반응형 스타일 설정
@@ -38,18 +36,6 @@ export default function TextSummary() {
   const buttonSize = useBreakpointValue({ base: "md", md: "lg" });
 
   const handleSubmit = async () => {
-    if (!currentUser?.uid) {
-      toast({
-        title: "인증 필요",
-        description: "이 기능을 사용하려면 로그인이 필요합니다.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top", // 모바일에서 더 잘 보이는 위치
-      });
-      return;
-    }
-
     if (!inputText.trim()) {
       toast({
         title: "입력 오류",
@@ -64,9 +50,12 @@ export default function TextSummary() {
 
     try {
       setLoading(true);
+      console.log("요약 시작:", inputText); // 디버깅 로그
 
       // 실제 요약 처리
       const summaryText = await SummaryService.summarizeText(inputText);
+      console.log("요약 결과:", summaryText); // 디버깅 로그
+
       const timestamp = new Date().toISOString();
 
       // UI 업데이트
