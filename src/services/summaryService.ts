@@ -14,14 +14,12 @@ export class SummaryService {
   }
 
   private static extractSentences(text: string): string[] {
-    // 문장 구분을 위한 정규식 (마침표, 느낌표, 물음표, 쉼표로 구분)
-    const sentenceRegex = /[^.!?,]+[.!?,]+/g;
-    const matches = text.match(sentenceRegex) || [];
-
-    // 빈 문자열이나 공백만 있는 문장 제거
-    return matches
-      .map((sentence) => sentence.trim())
-      .filter((sentence) => sentence.length > 0);
+    // 문장의 끝을 인식하는 정규식 수정
+    const sentences = text
+      .split(/[.!?]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    return sentences.length > 0 ? sentences : [text];
   }
 
   private static calculateSentenceScore(sentence: string): number {
@@ -44,6 +42,9 @@ export class SummaryService {
       "중요",
       "필수",
       "목표",
+      "만들", // "만들어보았다" 같은 표현을 위해 추가
+      "테스트",
+      "서비스",
     ];
 
     // 키워드 포함 여부에 따른 점수
@@ -53,7 +54,7 @@ export class SummaryService {
 
     // 문장 위치에 따른 가중치 (첫 문장에 가중치 부여)
     const positionScore =
-      sentence.includes("저는") || sentence.includes("나는") ? 1 : 0;
+      sentence.includes("나는") || sentence.includes("저는") ? 2 : 0;
 
     return keywordScore + positionScore;
   }
@@ -83,6 +84,11 @@ export class SummaryService {
 
   public static async summarizeText(text: string): Promise<string> {
     try {
+      // 텍스트가 너무 짧으면 그대로 반환
+      if (text.length < 10) {
+        return text;
+      }
+
       // 텍스트가 너무 길 경우 처리
       const maxLength = 1000;
       if (text.length > maxLength) {
@@ -92,13 +98,9 @@ export class SummaryService {
       // 문장 추출
       const sentences = this.extractSentences(text);
 
-      // 텍스트가 매우 짧은 경우 그대로 반환
-      if (text.length < 10) {
+      // 문장이 하나뿐이면 그대로 반환
+      if (sentences.length <= 1) {
         return text;
-      }
-
-      if (sentences.length === 0) {
-        return "텍스트에서 유효한 문장을 찾을 수 없습니다.";
       }
 
       // 각 문장의 점수 계산
@@ -110,21 +112,10 @@ export class SummaryService {
       // 점수순으로 정렬
       scoredSentences.sort((a, b) => b.score - a.score);
 
-      // 상위 문장 선택 (최소 1개는 반환)
-      const numSentences = Math.max(
-        1,
-        Math.min(2, Math.ceil(sentences.length * 0.3))
-      );
-      const topSentences = scoredSentences
-        .slice(0, numSentences)
-        .map((item) => item.sentence);
+      // 가장 높은 점수의 문장 선택
+      const topSentence = scoredSentences[0].sentence;
 
-      // 원래 순서대로 재정렬
-      const orderedSummary = sentences
-        .filter((sentence) => topSentences.includes(sentence.trim()))
-        .join(" ");
-
-      return orderedSummary || text; // 요약 실패시 원본 반환
+      return topSentence || text; // 실패시 원본 반환
     } catch (error) {
       console.error("요약 중 오류 발생:", error);
       return text; // 오류 발생시 원본 반환
