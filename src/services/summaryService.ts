@@ -84,104 +84,103 @@ export class SummaryService {
 
   public static async summarizeText(text: string): Promise<string> {
     try {
-      console.log("입력 텍스트:", text); // 디버깅 로그
+      console.log("입력 텍스트:", text);
 
-      // 입력 텍스트 검증
+      // 입력 검증
       if (!text || typeof text !== "string") {
-        console.log("유효하지 않은 입력"); // 디버깅 로그
         return "유효한 텍스트를 입력해주세요.";
       }
 
       // 텍스트 전처리
       const cleanText = text.trim();
-      console.log("전처리된 텍스트:", cleanText); // 디버깅 로그
+      console.log("전처리된 텍스트:", cleanText);
 
-      // 짧은 텍스트는 그대로 반환
-      if (cleanText.length < 20) {
-        console.log("짧은 텍스트 그대로 반환"); // 디버깅 로그
+      // 짧은 문장이면서 '나는/저는'이 포함된 경우 그대로 반환
+      if (
+        cleanText.length < 100 &&
+        (cleanText.includes("나는") || cleanText.includes("저는"))
+      ) {
+        console.log("짧은 문장 그대로 반환");
         return cleanText;
       }
 
-      // 문장 분리
-      const sentences = cleanText
-        .split(/[.!?]+/)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+      // 문장 분리 (마침표가 없는 경우도 처리)
+      let sentences = cleanText.split(/[.!?]+/);
+      if (sentences.length === 1 && sentences[0] === cleanText) {
+        // 마침표가 없는 경우 띄어쓰기로 분리
+        sentences = cleanText.split(/[\s,]+/);
+      }
 
-      console.log("분리된 문장들:", sentences); // 디버깅 로그
+      sentences = sentences.map((s) => s.trim()).filter((s) => s.length > 0);
 
-      // 단일 문장이면 그대로 반환
+      console.log("분리된 문장/구절들:", sentences);
+
+      // 문장이 하나뿐이면 그대로 반환
       if (sentences.length <= 1) {
-        console.log("단일 문장 그대로 반환"); // 디버깅 로그
         return cleanText;
       }
 
-      // 중요 키워드
-      const keywords = [
-        "프로젝트",
-        "개발",
-        "구현",
-        "생성",
-        "작업",
-        "기능",
-        "목적",
-        "결과",
-        "요약",
-        "정리",
-        "설명",
-        "소개",
-        "주요",
-        "핵심",
-        "중요",
-        "필수",
-        "목표",
-        "만들",
-        "테스트",
-        "서비스",
-      ];
-
-      // 각 문장 점수 계산
+      // 각 문장/구절의 점수 계산
       const scoredSentences = sentences.map((sentence) => {
         let score = 0;
 
-        // 키워드 점수
+        // 주요 키워드 점수
+        const keywords = [
+          "프로젝트",
+          "개발",
+          "구현",
+          "생성",
+          "작업",
+          "기능",
+          "목적",
+          "결과",
+          "요약",
+          "정리",
+          "설명",
+          "소개",
+          "주요",
+          "핵심",
+          "중요",
+          "필수",
+          "목표",
+          "만들",
+          "테스트",
+          "서비스",
+        ];
+
         keywords.forEach((keyword) => {
-          if (sentence.toLowerCase().includes(keyword)) {
-            score += 2;
-          }
+          if (sentence.includes(keyword)) score += 2;
         });
 
         // 주체 언급 점수
         if (sentence.includes("나는") || sentence.includes("저는")) {
-          score += 5; // 가중치 증가
+          score += 5;
         }
 
-        // 행동 완료 표현 점수
+        // 동작/행위 표현 점수
         if (
-          sentence.includes("했다") ||
-          sentence.includes("았다") ||
-          sentence.includes("었다") ||
-          sentence.includes("보았다")
+          sentence.includes("했") ||
+          sentence.includes("았") ||
+          sentence.includes("었") ||
+          sentence.includes("보았") ||
+          sentence.includes("만들")
         ) {
           score += 3;
         }
 
-        console.log("문장 점수:", { sentence, score }); // 디버깅 로그
+        console.log("문장 점수:", { sentence, score });
         return { sentence, score };
       });
 
-      // 점수 기준 정렬
+      // 점수로 정렬
       scoredSentences.sort((a, b) => b.score - a.score);
-      console.log("정렬된 문장들:", scoredSentences); // 디버깅 로그
+      console.log("정렬된 문장들:", scoredSentences);
 
-      // 최고 점수 문장 반환
-      const result = scoredSentences[0].sentence;
-      console.log("최종 결과:", result); // 디버깅 로그
-
-      return result;
+      // 최고 점수 문장 반환 또는 원본 반환
+      return scoredSentences[0]?.sentence || cleanText;
     } catch (error) {
       console.error("요약 중 오류 발생:", error);
-      return "요약 중 오류가 발생했습니다.";
+      return cleanText; // 오류 시 원본 반환
     }
   }
 }
